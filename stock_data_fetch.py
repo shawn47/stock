@@ -8,11 +8,11 @@ import datetime
 import pandas as pd
 import numpy as np
 
-def retrive_stock_data(stockid, folder):
+def retrive_stock_data(stockid, folder, scale, dataLen):
 	print('downloading %s to %s' % (stockid, folder))
-	url_sina = 'http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=%s&scale=%d&ma=no&datalen=%d' % (stockid, 5, 49)
+	url_sina = 'http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=%s&scale=%d&ma=no&datalen=%d' % (stockid, scale, dataLen)
 	fname = os.path.join(folder, '%s.csv' % stockid[2:])
-	print(url_sina)
+	# print(url_sina)
 
 	raw_data = urllib.urlopen(url_sina).read()
 	if raw_data != 'null':
@@ -34,10 +34,10 @@ def retrive_stock_data(stockid, folder):
 
 		# urllib.urlretrieve(url_sina, fname)
 
-def update_stock_data(stockid, folder):
+def update_stock_data(stockid, folder, scale, dataLen):
 	fname = os.path.join(folder, '%s.csv' % stockid[2:])
 	if not os.path.exists(fname):
-		retrive_stock_data(stockid, folder)
+		retrive_stock_data(stockid, folder, scale, dataLen)
 		return
 
     # data = pd.read_csv(fname, index_col='Date', parse_dates=True)
@@ -83,13 +83,13 @@ def stock_list(postfixs, files):
 	print('%d files. %d stocks.' % (len(files), len(data)))
 	return data
 
-def update_stock_data_batch():
+def update_stock_data_batch(folder, scale, dataLen):
 	slist = stock_list(['sh', 'sz'], ['SH.txt', 'SZ.txt'])
 	for i in range(len(slist)):
 		s = slist.iloc[i]
-		print('postfix: %s. id: %s' % (s['postfix'], s['id']))
-		update_stock_data(s['postfix'].strip() + s['id'].strip(), 'sina-data')
+		# print('postfix: %s. id: %s' % (s['postfix'], s['id']))
+		update_stock_data(s['postfix'].strip() + s['id'].strip(), folder, scale, dataLen)
 
 
 if __name__ == '__main__':
-	update_stock_data_batch()
+	update_stock_data_batch('sina-data-1d', 240, 1023)

@@ -11,6 +11,7 @@ import time
 from numpy import inf
 from numpy import NaN
 import os
+import csv
 
 
 # pool = Series(get_index_stocks('000016.XSHG'))
@@ -108,6 +109,36 @@ def main():
             else:
                 continue
 
+def write2CSVFile(result, fname):
+    with file(fname,"w") as csvfile: 
+        writer = csv.writer(csvfile)
+
+        writer.writerow(["code", "distance"])
+        
+        for item in result:
+            writer.writerow([item[:6], item[7:]])
+
+def showStockTrend(stk1, stk2):
+    fig_size = plt.rcParams['figure.figsize']
+    fig_size[0] = 12
+    fig_size[1] = 8
+    
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+
+    target1StockInfo = []
+    target1StockInfo.append(get_target_stock(stk1))
+    stk1PriceInfo = get_target_price(target1StockInfo, '2017-10-11 09:35:00', '2017-10-11 15:00:00', 'closing_price')
+
+    target2StockInfo = []
+    target2StockInfo.append(get_target_stock(stk2))
+    stk2PriceInfo = get_target_price(target2StockInfo, '2017-10-11 09:35:00', '2017-10-11 15:00:00', 'closing_price')
+
+    p1 = ax1.plot(range(len(stk1PriceInfo)), stk1PriceInfo, 'r')
+    p1 = ax2.plot(range(len(stk2PriceInfo)), stk2PriceInfo, 'k')
+
+    plt.show()
+
 def run(target):
     targetStockInfo = []
     targetStockInfo.append(get_target_stock(target))
@@ -142,17 +173,17 @@ def run(target):
             
         # print(time.strftime('2 %Y-%m-%d %H:%M:%S', time.localtime()))
 
-    # watchList = []
+    watchList = []
 
     for i in range(len(pool)):
-        # if i != len(pool) - 1:
         try:
             dist, cost, acc, path = dtw(targetStockPriceInfo, closeprice[i], dist = euclidean_distances)
         except:
             continue
         # else:
         distance_ = acc[-1][-1]
-        print(distance_)
+        watchList.append('%s,%s' % (pool[i].ix[1:2]['code'], distance_))
+        # print(distance_)
         # print('***')
             
         # print(time.strftime('3 %Y-%m-%d %H:%M:%S', time.localtime()))    
@@ -167,10 +198,10 @@ def run(target):
             fig, ax1 = plt.subplots()
             ax2 = ax1.twinx()
 
-            print(len(closeprice[i]))
-            print(len(targetStockPriceInfo))
+            # print(len(closeprice[i]))
+            # print(len(targetStockPriceInfo))
 
-            print(pool[i].ix[1:2]['code'])
+            # print(pool[i].ix[1:2]['code'])
         
             p1 = ax1.plot(range(len(closeprice[i])), closeprice[i], 'r')
             p1 = ax2.plot(range(len(targetStockPriceInfo)), targetStockPriceInfo, 'k')
@@ -180,13 +211,12 @@ def run(target):
         else:
             continue
     # plt.show()
+    write2CSVFile(watchList, "result_%s.csv" % (time.strftime('%Y-%m-%d', time.localtime())))
 
 if __name__ == '__main__':
     # main()
     poolList = get_code_list()
     get_stock_pool(poolList)
-    # get_price(1, '2017-10-11 10:05:00', '2017-10-11 11:05:00', 'volume')
-    # main()
-    run('002304.csv')
-    # print(len(pool))
-    # print(pool[1].ix[2]['volume'])
+    # run('002304.csv')
+    showStockTrend('002304.csv', '000921.csv')
+
