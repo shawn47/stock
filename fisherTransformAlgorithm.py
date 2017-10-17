@@ -5,6 +5,7 @@ from pandas import DataFrame , Series
 import math
 import csv
 import os
+from BlackList import BlackList
 
 pool = []
 
@@ -22,11 +23,12 @@ def get_target_stock(target):
     return stockInfo
 
 def get_stock_pool(poolList = POOLLIST):
+	blackList = BlackList()
     for stockFile in poolList:
-        # if stockFile != '002304.csv':
-        stockInfo = pd.read_csv('sina-data-1d/%s' % stockFile, index_col='date', parse_dates=True)
-        stockInfo['code'] = stockFile[:6]
-        pool.append(stockInfo)
+        if stockFile[:6] not in blackList.blackList:
+	        stockInfo = pd.read_csv('sina-data-1d/%s' % stockFile, index_col='date', parse_dates=True)
+	        stockInfo['code'] = stockFile[:6]
+	        pool.append(stockInfo)
 
 def get_price(index, startDate, endDate, priceTag):
     priceList = np.array(pool[index][startDate: endDate][priceTag]).tolist()
